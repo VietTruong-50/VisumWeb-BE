@@ -11,8 +11,13 @@ import com.hust.visum.repository.SubCategoryRepository;
 import com.hust.visum.request.SongDTO;
 import com.hust.visum.service.SongService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -31,7 +36,13 @@ public class SongServiceImpl implements SongService {
     private SingerRepository singerRepository;
 
     @Override
-    public Song createNewSong(SongDTO songDTO) {
+    public Page<Song> findAll(int page, int size, String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(!sortBy.isEmpty() ? "createdAt" : "updatedAt"));
+        return songRepository.findAll(pageable);
+    }
+
+    @Override
+    public Song createSong(SongDTO songDTO) {
         Song song = new Song();
 
         if (songDTO != null) {
@@ -66,5 +77,35 @@ public class SongServiceImpl implements SongService {
         }
 
         return songRepository.save(song);
+    }
+
+    @Override
+    public List<Song> createListSong(List<SongDTO> songDTOS) {
+        return null;
+    }
+
+    @Override
+    public Song updateSong(SongDTO songDTO, String id) {
+        return null;
+    }
+
+    @Override
+    public Optional<Song> getSongById(String uuid) {
+        return Optional.empty();
+    }
+
+    @Override
+    public void deleteSong(String uuid) {
+
+    }
+
+    @Override
+    public Page<Song> findSongsByTitle(String title, int page, int size, String sortBy) {
+        return null;
+    }
+
+    @Override
+    public Page<Song> findSongsByCategory(List<String> category, int page, int size, String sortBy) {
+        return null;
     }
 }
