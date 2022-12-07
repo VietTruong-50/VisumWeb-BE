@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class SongServiceImpl implements SongService {
@@ -37,7 +38,7 @@ public class SongServiceImpl implements SongService {
 
     @Override
     public Page<Song> findAll(int page, int size, String sortBy) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(!sortBy.isEmpty() ? "createdAt" : "updatedAt"));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(!sortBy.isEmpty() ? sortBy : "createdAt"));
         return songRepository.findAll(pageable);
     }
 
@@ -85,27 +86,95 @@ public class SongServiceImpl implements SongService {
     }
 
     @Override
-    public Song updateSong(SongDTO songDTO, String id) {
+    public Song updateSong(SongDTO songDTO, Long id) {
+        Optional<Song> song = getSongById(id);
+
+        if (song.isPresent()) {
+            Song updateSong = song.get();
+
+            updateSong.setSongName(songDTO.getSongName());
+            updateSong.setDuration(songDTO.getDuration());
+            updateSong.setImage(songDTO.getImage());
+            updateSong.setImageName(songDTO.getImageName());
+
+            if (songDTO.getComposer_id() != null) {
+                Composer composer = composerRepository
+                        .findById(songDTO.getComposer_id())
+                        .orElse(null);
+
+                updateSong.setComposer(composer);
+            }
+
+            if (songDTO.getSinger_id() != null) {
+                Singer singer = singerRepository
+                        .findById(songDTO.getSinger_id())
+                        .orElse(null);
+
+                updateSong.setSinger(singer);
+            }
+
+            if (songDTO.getSubCategory_id() != null) {
+                SubCategory subCategory = subCategoryRepository
+                        .findById(songDTO.getSubCategory_id())
+                        .orElse(null);
+
+                updateSong.setSubCategory(subCategory);
+            }
+            return songRepository.save(updateSong);
+        }
         return null;
     }
 
     @Override
-    public Optional<Song> getSongById(String uuid) {
-        return Optional.empty();
+    public Optional<Song> getSongById(Long id) {
+        return songRepository.findById(id);
     }
 
     @Override
-    public void deleteSong(String uuid) {
-
+    public void deleteSong(Long id) {
+        songRepository.deleteById(id);
     }
 
     @Override
     public Page<Song> findSongsByTitle(String title, int page, int size, String sortBy) {
-        return null;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+
+        return songRepository.findAllBySongName(title, pageable);
     }
 
     @Override
-    public Page<Song> findSongsByCategory(List<String> category, int page, int size, String sortBy) {
-        return null;
+    public Page<Song> findSongsByCategory(String subCategoryName, int page, int size, String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+
+        SubCategory subCategory = subCategoryRepository
+                .findSubCategoriesBySubCategoryName(subCategoryName)
+                .orElse(null);
+
+        return songRepository.findAllBySubCategory(
+                subCategory,
+                pageable
+        );
+    }
+
+    @Override
+    public Set<Song> findTop4BySinger(Long singerId) {
+        return songRepository.findTop4BySinger_Id(singerId);
+    }
+
+    @Override
+    public Set<Song> findTop4ByCategory(Long cateId) {
+        return songRepository.findTop4BySubCategory_Id(cateId);
+    }
+
+    @Override
+    public Page<Song> searchBySingerName(int page, int size, String sortBy, String singerName) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        return songRepository.findAllBySinger_SingerName(pageable, singerName);
+    }
+
+    @Override
+    public Page<Song> searchByComposerName(int page, int size, String sortBy, String composerName) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        return songRepository.findAllByComposer_ComposerName(pageable, composerName);
     }
 }

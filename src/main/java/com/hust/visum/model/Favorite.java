@@ -1,5 +1,6 @@
 package com.hust.visum.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -12,7 +13,12 @@ public class Favorite {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private int userId;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private User user;
 
-    private int songId;
+    @ManyToOne
+    @JoinColumn(name = "song_id")
+    private Song song;
 }

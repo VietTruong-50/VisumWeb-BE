@@ -3,6 +3,7 @@ package com.hust.visum.controller;
 import com.hust.visum.model.User;
 import com.hust.visum.request.LoginRequest;
 import com.hust.visum.request.SignupRequest;
+import com.hust.visum.request.UserDTO;
 import com.hust.visum.response.ApiResponse;
 import com.hust.visum.response.JwtResponse;
 import com.hust.visum.service.implement.UserDetailsServiceImpl;
@@ -29,7 +30,7 @@ public class AuthController {
     }
 
     @PostMapping(value = "/signup", produces = "application/json")
-    public ApiResponse<User> registerUser(@Valid @RequestBody SignupRequest signupRequest) {
+    public ApiResponse<User> registerUser(@Valid @RequestBody UserDTO signupRequest) {
         return userDetailsService.register(signupRequest);
     }
 }

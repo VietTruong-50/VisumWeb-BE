@@ -1,7 +1,9 @@
 package com.hust.visum.model;
 
-import com.hust.visum.Enum.Gender;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.hust.visum.Enum.GenderEnum;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -10,6 +12,7 @@ import java.util.Set;
 
 @Data
 @Entity
+@NoArgsConstructor
 @Table(name = "users")
 public class User {
     @Id
@@ -31,7 +34,7 @@ public class User {
 
     private Date birthOfDate;
 
-    private Gender gender;
+    private GenderEnum genderEnum;
 
     private String email;
 
@@ -49,6 +52,10 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "user")
+    private List<Favorite> favorites;
 
     public User(String username, String password, String email) {
         this.userName = username;

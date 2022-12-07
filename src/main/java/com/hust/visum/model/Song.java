@@ -1,12 +1,17 @@
 package com.hust.visum.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
 import javax.persistence.*;
+import java.util.List;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "songs")
 public class Song {
@@ -26,6 +31,7 @@ public class Song {
     @ColumnDefault(value = "0")
     private int views;
 
+    @JsonIgnore
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "playlist_songs",
             joinColumns = @JoinColumn(name = "song_id"),
@@ -45,6 +51,13 @@ public class Song {
     @JoinColumn(name = "singer_id")
     private Singer singer;
 
+//    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+//    @JoinTable(name = "singer_songs",
+//            joinColumns = @JoinColumn(name = "song_id"),
+//            inverseJoinColumns = @JoinColumn(name = "singer_id")
+//    )
+//    private Set<Singer> singers;
+
     @ManyToOne
     @JoinColumn(name = "composer_id")
     private Composer composer;
@@ -52,4 +65,8 @@ public class Song {
     @ManyToOne
     @JoinColumn(name = "subCategory_id")
     private SubCategory subCategory;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "song")
+    private List<Favorite> favorites;
 }

@@ -1,9 +1,11 @@
 package com.hust.visum.service.implement;
 
 import com.hust.visum.Jwt.JwtUtils;
+import com.hust.visum.model.Favorite;
 import com.hust.visum.model.Role;
 import com.hust.visum.model.Song;
 import com.hust.visum.model.User;
+import com.hust.visum.repository.FavoriteRepository;
 import com.hust.visum.repository.RoleRepository;
 import com.hust.visum.repository.SongRepository;
 import com.hust.visum.repository.UserRepository;
@@ -16,7 +18,7 @@ import com.hust.visum.response.JwtResponse;
 import com.hust.visum.response.MessageResponse;
 import com.hust.visum.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,11 +26,13 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -52,17 +56,21 @@ public class UserDetailsServiceImpl implements UserService, UserDetailsService {
     @Autowired
     private SongRepository songRepository;
 
+    @Autowired
+    private FavoriteRepository favoriteRepository;
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return null;
+        User user = userRepository.findUserByUserName(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + username));
+
+        return UserDetailsImpl.build(user);
     }
 
     @Override
     public JwtResponse authenticateUser(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
-
-//        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         //Get token
         String jwt = jwtUtils.generateJwtToken(authentication);
@@ -78,10 +86,10 @@ public class UserDetailsServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public ApiResponse<User> register(SignupRequest signupRequest) {
+    public ApiResponse<User> register(UserDTO signupRequest) {
 
         //Check if existed username or email
-        if (userRepository.existsByUserName(signupRequest.getUsername())) {
+        if (userRepository.existsByUserName(signupRequest.getUserName())) {
             return ApiResponse.failureWithCode("", new MessageResponse("Error: Username is already taken!").getMessage());
         }
 
@@ -89,10 +97,11 @@ public class UserDetailsServiceImpl implements UserService, UserDetailsService {
             return ApiResponse.failureWithCode("", new MessageResponse("Error: Email is already taken!").getMessage());
         }
 
-        User user = new User(
-                signupRequest.getUsername(),
-                passwordEncoder.encode(signupRequest.getPassword()),
-                signupRequest.getEmail());
+//        User user = new User(
+//                signupRequest.getUserName(),
+//                passwordEncoder.encode(signupRequest.getPassword()),
+//                signupRequest.getEmail());
+        User user = new User();
 
         //Get role from request
         Set<String> strRoles = signupRequest.getRoles();
@@ -128,28 +137,78 @@ public class UserDetailsServiceImpl implements UserService, UserDetailsService {
         }
 
         user.setRoles(roles);
-        userRepository.save(user);
 
-        return ApiResponse.successWithResult(user);
+        return ApiResponse.successWithResult(userRepository.save(signupRequest.toUser(user)));
     }
 
     @Override
-    public User changePassword(String userId, PasswordDTO passwordDTO) {
+    public User getCurrentUser(String userName) {
+        return userRepository.findUserByUserName(userName).orElse(null);
+    }
+
+    @Override
+    public User changePassword(Long userId, PasswordDTO passwordDTO) {
+        Optional<User> user = userRepository.findById(userId);
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
+        if (user.isPresent()) {
+            User updateUser = user.get();
+            if (encoder.matches(passwordDTO.getCurrentPassword(), updateUser.getPassword())) {
+                updateUser.setPassword(new BCryptPasswordEncoder().encode(passwordDTO.getNewPassword()));
+                return userRepository.save(updateUser);
+            }
+        }
         return null;
     }
 
     @Override
-    public User updateUser(String userId, UserDTO userDTO) {
+    public User updateUser(Long userId, UserDTO userDTO) {
+        Optional<User> user = userRepository.findById(userId);
+        User updateUser;
+        if (user.isPresent()) {
+            updateUser = user.get();
+
+            updateUser.setLastName(userDTO.getLastName() != null ? userDTO.getLastName() : updateUser.getLastName());
+            updateUser.setFirstName(userDTO.getFirstName() != null ? userDTO.getFirstName() : updateUser.getFirstName());
+            updateUser.setGenderEnum(userDTO.getGender() != null ? userDTO.getGender() : updateUser.getGenderEnum());
+            updateUser.setEmail(userDTO.getEmail() != null ? userDTO.getEmail() : updateUser.getEmail());
+            updateUser.setMobile(userDTO.getMobile() != null ? userDTO.getMobile() : updateUser.getMobile());
+            updateUser.setBirthOfDate(userDTO.getBirthOfDate() != null ? userDTO.getBirthOfDate() : updateUser.getBirthOfDate());
+
+            return userRepository.save(updateUser);
+        }
         return null;
     }
 
     @Override
-    public Page<Song> getFavoriteList(String userId, int page, int size, String sortBy) {
-        return null;
+    public Page<Song> getFavoriteList(String userName, int page, int size, String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+
+        return songRepository.findFavoriteListByUser(pageable, userName);
     }
 
     @Override
-    public User removeFavoriteSong(String userId, String songId) {
-        return null;
+    public void removeFavoriteSong(Long userId, Long songId) {
+        Song song = songRepository.findById(songId).orElse(null);
+        User user = userRepository.findById(userId).orElse(null);
+
+        if (song != null && user != null) {
+            favoriteRepository.deleteBySongAndUser(song, user);
+        }
+    }
+
+    @Override
+    public void addFavoriteSong(Long userId, Long songId) {
+        Song song = songRepository.findById(songId).orElse(null);
+        User user = userRepository.findById(userId).orElse(null);
+
+        if (song != null && user != null) {
+            Favorite favorite = new Favorite();
+
+            favorite.setSong(song);
+            favorite.setUser(user);
+
+            favoriteRepository.save(favorite);
+        }
     }
 }
