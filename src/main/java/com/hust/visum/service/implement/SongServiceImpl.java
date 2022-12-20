@@ -177,4 +177,11 @@ public class SongServiceImpl implements SongService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         return songRepository.findAllByComposer_ComposerName(pageable, composerName);
     }
+
+    @Override
+    public Page<Song> findMostPopularSong(int page, int size, String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+
+        return songRepository.findSongsByMostViews(pageable);
+    }
 }

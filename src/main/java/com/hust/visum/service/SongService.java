@@ -32,4 +32,6 @@ public interface SongService {
     Page<Song> searchBySingerName(int page, int size, String sortBy, String singerName);
 
     Page<Song> searchByComposerName(int page, int size, String sortBy, String composerName);
+
+    Page<Song> findMostPopularSong(int page, int size, String sortBy);
 }

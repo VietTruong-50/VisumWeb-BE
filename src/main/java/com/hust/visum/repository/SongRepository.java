@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Set;
 
 @Repository
-public interface SongRepository extends JpaRepository<Song ,Long> {
+public interface SongRepository extends JpaRepository<Song, Long> {
     Page<Song> findAllBySubCategory(SubCategory subCategory, Pageable pageable);
 
     Page<Song> findAllBySongName(String songName, Pageable pageable);
@@ -30,5 +30,8 @@ public interface SongRepository extends JpaRepository<Song ,Long> {
     Page<Song> findAllBySinger_SingerName(Pageable pageable, String singerName);
 
     Page<Song> findAllByComposer_ComposerName(Pageable pageable, String composerName);
+
+    @Query("SELECT Song FROM Song ORDER BY views DESC")
+    Page<Song> findSongsByMostViews(Pageable pageable);
 
 }
