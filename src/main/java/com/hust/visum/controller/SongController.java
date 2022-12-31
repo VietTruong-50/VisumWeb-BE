@@ -17,12 +17,11 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/visum")
-@AllArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200", allowCredentials = "true")
+@CrossOrigin(origins = "*")
 public class SongController {
 
     @Autowired
-    private final SongServiceImpl songServiceImpl;
+    private SongServiceImpl songServiceImpl;
 
     @PostMapping(value = "/insertSong", produces = "application/json")
     public ApiResponse<Song> createSong(@RequestBody @Valid SongDTO songDTO) {
@@ -50,21 +49,20 @@ public class SongController {
         return ApiResponse.successWithResult(song);
     }
 
-    @GetMapping(value = "/search", produces = "application/json")
+    @GetMapping(value = "/searchSongs", produces = "application/json")
     public ApiResponse<Page<Song>> findSongsByTitle(@RequestParam String title,
                                                     @RequestParam int page,
-                                                    @RequestParam int size,
-                                                    @RequestParam String sortBy) {
-        Page<Song> songList = songServiceImpl.findSongsByTitle(title, page, size, sortBy);
+                                                    @RequestParam int size) {
+        Page<Song> songList = songServiceImpl.findSongsByTitle(title, page, size);
         return ApiResponse.successWithResult(songList);
     }
 
-    @GetMapping(value = "/songs/{category}", produces = "application/json")
-    public ApiResponse<Page<Song>> findSongsByCategory(@PathVariable("category") String category,
+    @GetMapping(value = "/songs/category", produces = "application/json")
+    public ApiResponse<Page<Song>> findSongsByCategory(@RequestParam String subCategoryName,
                                                     @RequestParam int page,
                                                     @RequestParam int size,
                                                     @RequestParam String sortBy) {
-        Page<Song> songList = songServiceImpl.findSongsByCategory(category, page - 1, size, sortBy);
+        Page<Song> songList = songServiceImpl.findSongsByCategory(subCategoryName, page, size, sortBy);
         return ApiResponse.successWithResult(songList);
     }
 

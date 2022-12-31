@@ -1,5 +1,6 @@
 package com.hust.visum.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.hust.visum.Enum.GenderEnum;
 import com.hust.visum.model.Role;
 import com.hust.visum.model.Song;
@@ -18,7 +19,7 @@ public class UserDTO {
     private String password;
 
     private GenderEnum gender;
-
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MM/dd/yyyy")
     private Date birthOfDate;
 
     private String firstName;
@@ -29,8 +30,6 @@ public class UserDTO {
     private String mobile;
 
     private String email;
-
-    private Set<Song> favoriteSongs;
 
     private Set<String> roles;
 

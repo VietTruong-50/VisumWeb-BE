@@ -21,7 +21,7 @@ public interface SongService {
 
     void deleteSong(Long id);
 
-    Page<Song> findSongsByTitle(String title, int page, int size, String sortBy);
+    Page<Song> findSongsByTitle(String title, int page, int size);
 
     Page<Song> findSongsByCategory(String subCategory, int page, int size, String sortBy);
 
@@ -29,7 +29,7 @@ public interface SongService {
 
     Set<Song> findTop4ByCategory(Long cateId);
 
-    Page<Song> searchBySingerName(int page, int size, String sortBy, String singerName);
+    Page<Song> searchBySingerName(int page, int size, String singerName);
 
     Page<Song> searchByComposerName(int page, int size, String sortBy, String composerName);
 

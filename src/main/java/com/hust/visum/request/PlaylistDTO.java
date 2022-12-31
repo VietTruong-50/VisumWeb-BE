@@ -7,6 +7,4 @@ public class PlaylistDTO {
 
     private String playlistName;
 
-    private Long userId;
-
 }

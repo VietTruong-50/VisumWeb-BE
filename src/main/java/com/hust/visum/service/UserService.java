@@ -4,7 +4,6 @@ import com.hust.visum.model.Song;
 import com.hust.visum.model.User;
 import com.hust.visum.request.LoginRequest;
 import com.hust.visum.request.PasswordDTO;
-import com.hust.visum.request.SignupRequest;
 import com.hust.visum.request.UserDTO;
 import com.hust.visum.response.ApiResponse;
 import com.hust.visum.response.JwtResponse;
@@ -23,7 +22,7 @@ public interface UserService {
 
     Page<Song> getFavoriteList(String userName, int page, int size, String sortBy);
 
-    void removeFavoriteSong(Long userId, Long songId);
+    Song removeFavoriteSong( Long songId);
 
-    void addFavoriteSong(Long userId, Long songId);
+    Song addFavoriteSong(Long songId);
 }

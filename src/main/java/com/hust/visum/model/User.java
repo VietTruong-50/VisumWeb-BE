@@ -1,5 +1,6 @@
 package com.hust.visum.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.hust.visum.Enum.GenderEnum;
 import lombok.Data;
@@ -45,7 +46,7 @@ public class User {
     @OneToMany
     private Set<Playlist> playlists;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),

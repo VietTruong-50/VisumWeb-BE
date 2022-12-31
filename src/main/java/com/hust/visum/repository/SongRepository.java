@@ -1,6 +1,5 @@
 package com.hust.visum.repository;
 
-import com.hust.visum.model.Favorite;
 import com.hust.visum.model.Song;
 import com.hust.visum.model.SubCategory;
 import com.hust.visum.model.User;
@@ -16,11 +15,12 @@ import java.util.Set;
 public interface SongRepository extends JpaRepository<Song, Long> {
     Page<Song> findAllBySubCategory(SubCategory subCategory, Pageable pageable);
 
-    Page<Song> findAllBySongName(String songName, Pageable pageable);
+    Page<Song> findAllBySongNameContaining(String songName, Pageable pageable);
 
-    @Query("SELECT s FROM Song s " +
-            "JOIN Favorite f ON s.id = f.song.id " +
-            "WHERE f.user.userName = ?1")
+    @Query(value = "SELECT s.* FROM songs s " +
+            "JOIN favorites f ON s.id = f.song_id " +
+            "JOIN users u ON f.user_id = u.id " +
+            "WHERE u.user_name = ?1", nativeQuery = true)
     Page<Song> findFavoriteListByUser(Pageable pageable, String userName);
 
     Set<Song> findTop4BySinger_Id(Long singerId);
@@ -31,7 +31,7 @@ public interface SongRepository extends JpaRepository<Song, Long> {
 
     Page<Song> findAllByComposer_ComposerName(Pageable pageable, String composerName);
 
-    @Query("SELECT Song FROM Song ORDER BY views DESC")
+    @Query(value = "SELECT * FROM songs ORDER BY views DESC", nativeQuery = true)
     Page<Song> findSongsByMostViews(Pageable pageable);
 
 }

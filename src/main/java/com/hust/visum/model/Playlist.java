@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -20,7 +21,7 @@ public class Playlist {
     private String playlistName;
 
     @ManyToMany(mappedBy = "playlists")
-    private Set<Song> songList;
+    private List<Song> songList;
 
     @JsonIgnore
     @ManyToOne

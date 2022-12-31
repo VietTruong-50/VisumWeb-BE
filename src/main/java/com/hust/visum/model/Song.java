@@ -1,5 +1,6 @@
 package com.hust.visum.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.Getter;
@@ -21,7 +22,7 @@ public class Song {
 
     private String songName;
 
-    private int duration;
+    private double duration;
 
     @Column(length = 500000)
     private byte[] image;
@@ -45,6 +46,7 @@ public class Song {
             joinColumns = @JoinColumn(name = "song_id"),
             inverseJoinColumns = @JoinColumn(name = "trending_id")
     )
+    @JsonIgnore
     private Set<Trending> trending;
 
     @ManyToOne
@@ -69,4 +71,7 @@ public class Song {
     @JsonIgnore
     @OneToMany(mappedBy = "song")
     private List<Favorite> favorites;
+
+    @OneToMany(mappedBy = "song")
+    private List<Comment> comments;
 }

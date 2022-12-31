@@ -11,7 +11,6 @@ import com.hust.visum.repository.SongRepository;
 import com.hust.visum.repository.UserRepository;
 import com.hust.visum.request.LoginRequest;
 import com.hust.visum.request.PasswordDTO;
-import com.hust.visum.request.SignupRequest;
 import com.hust.visum.request.UserDTO;
 import com.hust.visum.response.ApiResponse;
 import com.hust.visum.response.JwtResponse;
@@ -23,6 +22,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -97,11 +97,11 @@ public class UserDetailsServiceImpl implements UserService, UserDetailsService {
             return ApiResponse.failureWithCode("", new MessageResponse("Error: Email is already taken!").getMessage());
         }
 
-//        User user = new User(
-//                signupRequest.getUserName(),
-//                passwordEncoder.encode(signupRequest.getPassword()),
-//                signupRequest.getEmail());
-        User user = new User();
+        User user = new User(
+                signupRequest.getUserName(),
+                passwordEncoder.encode(signupRequest.getPassword()),
+                signupRequest.getEmail());
+//        User user = new User();
 
         //Get role from request
         Set<String> strRoles = signupRequest.getRoles();
@@ -187,28 +187,43 @@ public class UserDetailsServiceImpl implements UserService, UserDetailsService {
         return songRepository.findFavoriteListByUser(pageable, userName);
     }
 
+
     @Override
-    public void removeFavoriteSong(Long userId, Long songId) {
+    public Song removeFavoriteSong(Long songId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        User user = userRepository.findUserByUserName(authentication.getName()).orElse(null);
+
         Song song = songRepository.findById(songId).orElse(null);
-        User user = userRepository.findById(userId).orElse(null);
+
 
         if (song != null && user != null) {
             favoriteRepository.deleteBySongAndUser(song, user);
         }
+
+        return song;
     }
 
     @Override
-    public void addFavoriteSong(Long userId, Long songId) {
+    public Song addFavoriteSong(Long songId) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        User user = userRepository.findUserByUserName(authentication.getName()).orElse(null);
+
         Song song = songRepository.findById(songId).orElse(null);
-        User user = userRepository.findById(userId).orElse(null);
 
-        if (song != null && user != null) {
-            Favorite favorite = new Favorite();
+        if (!songRepository.existsById(songId)) {
+            if (song != null && user != null) {
+                Favorite favorite = new Favorite();
 
-            favorite.setSong(song);
-            favorite.setUser(user);
+                favorite.setSong(song);
+                favorite.setUser(user);
 
-            favoriteRepository.save(favorite);
+                favoriteRepository.save(favorite);
+            }
         }
+
+        return song;
     }
 }
