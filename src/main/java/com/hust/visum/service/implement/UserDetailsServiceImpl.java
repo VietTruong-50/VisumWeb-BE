@@ -213,7 +213,7 @@ public class UserDetailsServiceImpl implements UserService, UserDetailsService {
 
         Song song = songRepository.findById(songId).orElse(null);
 
-        if (!songRepository.existsById(songId)) {
+        if (!favoriteRepository.existsBySong(song)) {
             if (song != null && user != null) {
                 Favorite favorite = new Favorite();
 

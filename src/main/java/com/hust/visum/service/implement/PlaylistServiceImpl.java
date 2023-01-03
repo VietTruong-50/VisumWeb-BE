@@ -15,9 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class PlaylistServiceImpl implements PlaylistService {
@@ -94,17 +92,59 @@ public class PlaylistServiceImpl implements PlaylistService {
     }
 
     @Override
-    public PlaylistResponse getPlaylistSong(Long playlistId) {
+    public void removeSongFromPlaylist(Long playListId, Long songId) {
+        playlistRepository.findById(playListId).ifPresent(playlist -> {
+                    Song song = songRepository.findById(songId).orElse(null);
+                    if (song != null) {
+
+                        playlist.getSongList().remove(song);
+
+                        song.getPlaylists().remove(playlist);
+
+                        songRepository.save(song);
+                    }
+                }
+        );
+    }
+
+
+    @Override
+    public PlaylistResponse getPlaylistSong(Long playlistId, String orderBy, String sortType) {
         Optional<Playlist> playlist = playlistRepository.findById(playlistId);
         PlaylistResponse playlistResponse = new PlaylistResponse();
 
         if (playlist.isPresent()) {
+            if (Objects.equals(sortType, "name")) {
+                switch (orderBy) {
+                    case "ASC" -> playlist.get().getSongList().sort(Comparator.comparing(Song::getSongName));
+                    case "DSC" -> playlist.get().getSongList().sort(Comparator.comparing(Song::getSongName).reversed());
+                    default -> {
+
+                    }
+                }
+            } else if (Objects.equals(sortType, "duration")) {
+                switch (orderBy) {
+                    case "ASC" -> playlist.get().getSongList().sort(Comparator.comparing(Song::getDuration));
+                    case "DSC" -> playlist.get().getSongList().sort(Comparator.comparing(Song::getDuration).reversed());
+                    default -> {
+
+                    }
+                }
+            }
+
             playlistResponse.setId(playlist.get().getId());
             playlistResponse.setPlaylistName(playlist.get().getPlaylistName());
             playlistResponse.setSongList(playlist.get().getSongList());
             playlistResponse.setUserName(playlist.get().getUser().getUserName());
         }
         return playlistResponse;
+    }
+
+    @Override
+    public Page<Song> findSongNotInPlaylist(Long playlistId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        return songRepository.findSongNotInPlaylist(playlistId, pageable);
     }
 
 
@@ -124,6 +164,7 @@ public class PlaylistServiceImpl implements PlaylistService {
             newPlaylist.setId(item.getId());
             newPlaylist.setUserName(authentication.getName());
             newPlaylist.setPlaylistName(item.getPlaylistName());
+            newPlaylist.setSongList(item.getSongList());
 
             playlistsResponse.add(newPlaylist);
         });
@@ -145,6 +186,7 @@ public class PlaylistServiceImpl implements PlaylistService {
             newPlaylist.setId(item.getId());
             newPlaylist.setUserName(item.getUser().getUserName());
             newPlaylist.setPlaylistName(item.getPlaylistName());
+            newPlaylist.setSongList(item.getSongList());
 
             playlistResponse.add(newPlaylist);
         });
