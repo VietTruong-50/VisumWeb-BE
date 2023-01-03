@@ -17,12 +17,11 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/visum")
-@AllArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200", allowCredentials = "true")
+@CrossOrigin(origins = "*")
 public class SongController {
 
     @Autowired
-    private final SongServiceImpl songServiceImpl;
+    private SongServiceImpl songServiceImpl;
 
     @PostMapping(value = "/insertSong", produces = "application/json")
     public ApiResponse<Song> createSong(@RequestBody @Valid SongDTO songDTO) {
@@ -44,38 +43,37 @@ public class SongController {
         return ApiResponse.successWithResult(songList);
     }
 
-    @GetMapping(value = "/songs/?id={songId}", produces = "application/json")
-    public ApiResponse<Optional<Song>> findSongByUUID(@PathVariable("songId") String songId) {
+    @GetMapping(value = "/songs/{songId}", produces = "application/json")
+    public ApiResponse<Optional<Song>> findSongById(@PathVariable("songId") Long songId) {
         Optional<Song> song = songServiceImpl.getSongById(songId);
         return ApiResponse.successWithResult(song);
     }
 
-    @GetMapping(value = "/search", produces = "application/json")
+    @GetMapping(value = "/searchSongs", produces = "application/json")
     public ApiResponse<Page<Song>> findSongsByTitle(@RequestParam String title,
                                                     @RequestParam int page,
-                                                    @RequestParam int size,
-                                                    @RequestParam String sortBy) {
-        Page<Song> songList = songServiceImpl.findSongsByTitle(title, page, size, sortBy);
+                                                    @RequestParam int size) {
+        Page<Song> songList = songServiceImpl.findSongsByTitle(title, page, size);
         return ApiResponse.successWithResult(songList);
     }
 
-    @GetMapping(value = "/songs/{category}", produces = "application/json")
-    public ApiResponse<Page<Song>> findSongsByCategory(@PathVariable("category") String category,
+    @GetMapping(value = "/songs/category", produces = "application/json")
+    public ApiResponse<Page<Song>> findSongsByCategory(@RequestParam String subCategoryName,
                                                     @RequestParam int page,
                                                     @RequestParam int size,
                                                     @RequestParam String sortBy) {
-        Page<Song> songList = songServiceImpl.findSongsByCategory(Collections.singletonList(category), page - 1, size, sortBy);
+        Page<Song> songList = songServiceImpl.findSongsByCategory(subCategoryName, page, size, sortBy);
         return ApiResponse.successWithResult(songList);
     }
 
     @PutMapping(value = "/songs/{songId}", produces = "application/json")
-    public ApiResponse<Song> updateSong(@PathVariable("songId") String id, @RequestBody SongDTO songDTO) {
+    public ApiResponse<Song> updateSong(@PathVariable("songId") Long id, @RequestBody SongDTO songDTO) {
         Song song = songServiceImpl.updateSong(songDTO, id);
         return ApiResponse.successWithResult(song);
     }
 
     @DeleteMapping(value = "/songs/{songId}", produces = "application/json")
-    public ApiResponse<Song> deleteSong(@PathVariable("songId") String id) {
+    public ApiResponse<Song> deleteSong(@PathVariable("songId") Long id) {
         songServiceImpl.deleteSong(id);
         return ApiResponse.successWithResult(null, "Delete success");
     }

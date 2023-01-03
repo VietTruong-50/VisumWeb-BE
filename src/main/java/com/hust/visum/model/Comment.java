@@ -1,14 +1,16 @@
 package com.hust.visum.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
 
-@Data
+@Getter
+@Setter
 @Entity
-@Table(name = "favorites")
-public class Favorite {
+@Table(name = "comments")
+public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -18,7 +20,14 @@ public class Favorite {
     @JsonIgnore
     private User user;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "song_id")
     private Song song;
+
+    @Column(nullable = false)
+    private String content;
+
+    @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private String createdAt;
 }

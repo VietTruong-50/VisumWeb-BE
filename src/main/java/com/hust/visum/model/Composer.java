@@ -1,5 +1,6 @@
 package com.hust.visum.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -19,6 +20,7 @@ public class Composer {
 
     private String information;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "composer")
     private Set<Song> songList;
 }

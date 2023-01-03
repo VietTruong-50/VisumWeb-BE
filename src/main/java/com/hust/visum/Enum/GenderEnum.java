@@ -1,5 +1,5 @@
 package com.hust.visum.Enum;
 
-public enum Gender {
+public enum GenderEnum {
     MALE, FEMALE, OTHER
 }
