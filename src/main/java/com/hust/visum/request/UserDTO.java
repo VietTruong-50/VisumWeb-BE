@@ -19,7 +19,7 @@ public class UserDTO {
     private String password;
 
     private GenderEnum gender;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MM/dd/yyyy")
+//    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MM/dd/yyyy")
     private Date birthOfDate;
 
     private String firstName;
