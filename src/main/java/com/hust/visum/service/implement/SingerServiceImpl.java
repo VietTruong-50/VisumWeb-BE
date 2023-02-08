@@ -29,6 +29,7 @@ public class SingerServiceImpl implements SingerService {
             singerDTO.setSingerName(singer.get().getSingerName());
             singerDTO.setDescription(singer.get().getDescription());
             singerDTO.setSongList(singer.get().getSongList());
+            singerDTO.setFollowers(singer.get().getFollowers());
 
             return singerDTO;
         }

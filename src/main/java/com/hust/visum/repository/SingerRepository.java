@@ -13,9 +13,9 @@ import java.util.List;
 
 @Repository
 public interface SingerRepository  extends JpaRepository<Singer,Long> {
-    @Query(value = "select * from singers " +
-            "join songs on songs.singer_id = singers.id " +
-            "where songs.song_name like %:key% or singers.singer_name like %:key%", nativeQuery = true)
+    @Query(value = "select distinct singers.* from singers" +
+            " join songs on songs.singer_id = singers.id" +
+            " where singers.singer_name like %:key%", nativeQuery = true)
     Page<Singer> findAllBySingerNameContaining(@Param("key") String key, Pageable pageable);
 
     @Query(value = "SELECT * FROM singers " +

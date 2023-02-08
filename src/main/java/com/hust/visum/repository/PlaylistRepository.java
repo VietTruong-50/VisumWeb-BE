@@ -16,4 +16,6 @@ public interface PlaylistRepository extends JpaRepository<Playlist, Long> {
     List<Playlist> findAllByUser(User user);
 
     List<Playlist> findAllByPlaylistNameContaining(String playlistName);
+
+    Playlist findByUserAndId(User user, Long playlistId);
 }

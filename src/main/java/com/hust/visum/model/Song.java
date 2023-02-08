@@ -72,6 +72,15 @@ public class Song {
     @OneToMany(mappedBy = "song")
     private List<Favorite> favorites;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "song")
     private List<Comment> comments;
+
+    @JsonIgnore
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinTable(name = "album_songs",
+            joinColumns = @JoinColumn(name = "song_id"),
+            inverseJoinColumns = @JoinColumn(name = "album_id")
+    )
+    private List<Album> albums;
 }

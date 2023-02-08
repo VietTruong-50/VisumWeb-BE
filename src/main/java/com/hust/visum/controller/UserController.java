@@ -96,7 +96,8 @@ public class UserController {
     }
 
     @GetMapping(value ="/playlists/{playlistId}/songs", produces = "application/json")
-    public ApiResponse<Page<Song>> findSongsNotInPlaylist(@PathVariable("playlistId") Long playlistId, @RequestParam int page, @RequestParam int size){
+    public ApiResponse<Page<Song>> findSongsNotInPlaylist(@PathVariable("playlistId") Long playlistId,
+                                                          @RequestParam int page, @RequestParam int size){
         return ApiResponse.successWithResult(playlistService.findSongNotInPlaylist(playlistId, page, size));
     }
 

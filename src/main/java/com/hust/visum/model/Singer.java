@@ -30,7 +30,7 @@ public class Singer {
     @OneToMany(mappedBy = "singer")
     private List<Song> songList;
 
-//    @JsonIgnore
-//    @ManyToMany(mappedBy = "singers")
-//    private Set<Song> songList;
+    @JsonIgnore
+    @OneToMany(mappedBy = "singer")
+    private List<Album> albums;
 }

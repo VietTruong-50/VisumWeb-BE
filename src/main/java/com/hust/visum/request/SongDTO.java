@@ -17,6 +17,4 @@ public class SongDTO {
     private Long composer_id;
 
     private Long subCategory_id;
-
-
 }
