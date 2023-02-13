@@ -143,13 +143,12 @@ public class PlaylistServiceImpl implements PlaylistService {
     }
 
     @Override
-    public Page<Song> findSongNotInPlaylist(Long playlistId, int page, int size) {
+    public Page<Song> recommendSongNotInPlaylist(Long playlistId, int page, int size) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         Optional<User> currentUser = userRepository.findUserByUserName(authentication.getName());
 
         List<Song> finalSongs = new ArrayList<>();
-        ;
 
         if (currentUser.isPresent()) {
             Map<SubCategory, Long> subCategoryMap = new HashMap<>();

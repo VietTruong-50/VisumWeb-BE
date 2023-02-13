@@ -28,13 +28,23 @@ public interface SongRepository extends JpaRepository<Song, Long> {
 
     @Query(value = "SELECT s FROM Song s JOIN Favorite f ON s.id = f.song.id " +
             "JOIN User u ON f.user.id = u.id WHERE u.userName = :userName")
-    Page<Song> findFavoriteListByUser(Pageable pageable, String userName);
+    List<Song> findFavoriteListByUser(String userName);
 
     @Query(value = "SELECT * FROM songs " +
             "JOIN sub_categories on songs.sub_category_id = sub_categories.id " +
             "WHERE songs.id NOT IN (SELECT song_id FROM playlist_songs WHERE playlist_songs.playlist_id = ?1) " +
             "AND sub_categories.id = ?2", nativeQuery = true)
     List<Song> findSongSameSubCategoryNotInPlaylist(Long playlistId, Long subCateId);
+
+    @Query(value = "SELECT * FROM songs " +
+            "JOIN sub_categories on songs.sub_category_id = sub_categories.id " +
+            "WHERE songs.id NOT IN (SELECT song_id FROM favorites WHERE favorites.user_id = ?1) AND sub_categories.id = ?2", nativeQuery = true)
+    List<Song> findSongSameSubCategoryNotInFavorite(Long userId, Long subCateId);
+
+    @Query(value = "SELECT * FROM songs " +
+            "JOIN sub_categories on songs.sub_category_id = sub_categories.id " +
+            "WHERE songs.id NOT IN (SELECT song_id FROM favorites WHERE favorites.user_id = ?1)", nativeQuery = true)
+    List<Song> findSongNotInFavorite(Long userId);
 
     @Query(value = "SELECT * FROM songs " +
             "JOIN sub_categories on songs.sub_category_id = sub_categories.id " +

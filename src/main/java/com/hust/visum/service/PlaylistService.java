@@ -23,7 +23,7 @@ public interface PlaylistService {
 
     PlaylistResponse getPlaylistSong(Long playlistId, String orderBy, String sortType);
 
-    Page<Song> findSongNotInPlaylist(Long playlistId, int page, int size);
+    Page<Song> recommendSongNotInPlaylist(Long playlistId, int page, int size);
 
     List<PlaylistResponse> findAllByUser();
 

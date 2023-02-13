@@ -1,9 +1,9 @@
 package com.hust.visum.controller;
 
+import com.hust.visum.model.Comment;
 import com.hust.visum.model.Playlist;
 import com.hust.visum.model.Song;
 import com.hust.visum.model.User;
-import com.hust.visum.model.Comment;
 import com.hust.visum.request.CommentDTO;
 import com.hust.visum.request.PlaylistDTO;
 import com.hust.visum.response.ApiResponse;
@@ -48,6 +48,11 @@ public class UserController {
     @Transactional(rollbackFor = {Exception.class, Throwable.class})
     public ApiResponse<Song> deleteFavoriteSong(@PathVariable("songId") Long songId) {
         return ApiResponse.successWithResult(userDetailsService.removeFavoriteSong(songId));
+    }
+
+    @GetMapping(value = "/favorite/songs", produces = "application/json")
+    public ApiResponse<Page<Song>> recommendSongNotInFavorite(@RequestParam int page, @RequestParam int size) {
+        return ApiResponse.successWithResult(songService.recommendSongFromFavorite(page, size));
     }
 
     @GetMapping(path = "/user", produces = "application/json")
@@ -95,11 +100,12 @@ public class UserController {
         return ApiResponse.successWithResult(playlistService.findAllByUser());
     }
 
-    @GetMapping(value ="/playlists/{playlistId}/songs", produces = "application/json")
+    @GetMapping(value = "/playlists/{playlistId}/songs", produces = "application/json")
     public ApiResponse<Page<Song>> findSongsNotInPlaylist(@PathVariable("playlistId") Long playlistId,
-                                                          @RequestParam int page, @RequestParam int size){
-        return ApiResponse.successWithResult(playlistService.findSongNotInPlaylist(playlistId, page, size));
+                                                          @RequestParam int page, @RequestParam int size) {
+        return ApiResponse.successWithResult(playlistService.recommendSongNotInPlaylist(playlistId, page, size));
     }
+
 
     @DeleteMapping(value = "/playlists/{playlistId}", produces = "application/json")
     public ApiResponse<Playlist> deletePlaylist(@PathVariable("playlistId") Long playlistId) {

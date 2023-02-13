@@ -184,7 +184,9 @@ public class UserDetailsServiceImpl implements UserService, UserDetailsService {
     public Page<Song> getFavoriteList(String userName, int page, int size, String sortBy) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
 
-        return songRepository.findFavoriteListByUser(pageable, userName);
+        List<Song> songs = songRepository.findFavoriteListByUser(userName);
+
+        return new PageImpl<>(songs, pageable, songs.size());
     }
 
 
