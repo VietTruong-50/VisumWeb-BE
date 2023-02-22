@@ -147,12 +147,15 @@ public class UserDetailsServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public User changePassword(Long userId, PasswordDTO passwordDTO) {
-        Optional<User> user = userRepository.findById(userId);
+    public User changePassword(PasswordDTO passwordDTO) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        Optional<User> currentUser = userRepository.findUserByUserName(authentication.getName());
+
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
-        if (user.isPresent()) {
-            User updateUser = user.get();
+        if (currentUser.isPresent()) {
+            User updateUser = currentUser.get();
             if (encoder.matches(passwordDTO.getCurrentPassword(), updateUser.getPassword())) {
                 updateUser.setPassword(new BCryptPasswordEncoder().encode(passwordDTO.getNewPassword()));
                 return userRepository.save(updateUser);
@@ -162,11 +165,14 @@ public class UserDetailsServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public User updateUser(Long userId, UserDTO userDTO) {
-        Optional<User> user = userRepository.findById(userId);
+    public User updateUser(UserDTO userDTO) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        Optional<User> currentUser = userRepository.findUserByUserName(authentication.getName());
+
         User updateUser;
-        if (user.isPresent()) {
-            updateUser = user.get();
+        if (currentUser.isPresent()) {
+            updateUser = currentUser.get();
 
             updateUser.setLastName(userDTO.getLastName() != null ? userDTO.getLastName() : updateUser.getLastName());
             updateUser.setFirstName(userDTO.getFirstName() != null ? userDTO.getFirstName() : updateUser.getFirstName());

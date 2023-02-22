@@ -198,9 +198,9 @@ public class SongServiceImpl implements SongService, CommentService {
 
         ChartResponse chartResponse = new ChartResponse();
 
-        chartResponse.setTop1(trendingRepository.getTotalSongViewsByDayAndWeek(weekOfYear-1, listSongIds.get(0)));
-        chartResponse.setTop2(trendingRepository.getTotalSongViewsByDayAndWeek(weekOfYear-1, listSongIds.get(1)));
-        chartResponse.setTop3(trendingRepository.getTotalSongViewsByDayAndWeek(weekOfYear-1, listSongIds.get(2)));
+        chartResponse.setTop1(trendingRepository.getTotalSongViewsByDayAndWeek(weekOfYear-1, listSongIds.size() > 0 ? listSongIds.get(0) : 0));
+        chartResponse.setTop2(trendingRepository.getTotalSongViewsByDayAndWeek(weekOfYear-1, listSongIds.size() > 1 ? listSongIds.get(1) : 0));
+        chartResponse.setTop3(trendingRepository.getTotalSongViewsByDayAndWeek(weekOfYear-1, listSongIds.size() > 2 ? listSongIds.get(2) : 0));
 
         chartResponse.setSongs(trendingRepository.getSongChartList(weekOfYear-1));
 

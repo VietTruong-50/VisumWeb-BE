@@ -5,7 +5,9 @@ import com.hust.visum.model.Playlist;
 import com.hust.visum.model.Song;
 import com.hust.visum.model.User;
 import com.hust.visum.request.CommentDTO;
+import com.hust.visum.request.PasswordDTO;
 import com.hust.visum.request.PlaylistDTO;
+import com.hust.visum.request.UserDTO;
 import com.hust.visum.response.ApiResponse;
 import com.hust.visum.response.PlaylistResponse;
 import com.hust.visum.service.implement.PlaylistServiceImpl;
@@ -138,5 +140,15 @@ public class UserController {
     @DeleteMapping(value = "/comment/{id}", produces = "application/json")
     public ApiResponse<Comment> deleteComment(@PathVariable Long id) {
         return ApiResponse.successWithResult(this.songService.deleteComment(id), "Delete Comment Successfully");
+    }
+
+    @PutMapping(value = "/profile", produces = "application/json")
+    public ApiResponse<User> updateProfile(@RequestBody() UserDTO userDTO){
+        return ApiResponse.successWithResult(userDetailsService.updateUser(userDTO));
+    }
+
+    @PutMapping(value = "/profile/password", produces = "application/json")
+    public ApiResponse<User> changePassword(@RequestBody() PasswordDTO passwordDTO){
+        return ApiResponse.successWithResult(userDetailsService.changePassword(passwordDTO));
     }
 }

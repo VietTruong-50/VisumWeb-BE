@@ -15,7 +15,7 @@ public interface TrendingRepository extends JpaRepository<Trending, Long> {
     Trending findByDayAndSong(int week, Song song);
 
     @Query(value = "select s.id FROM songs s JOIN trending td on td.song_id = s.id " +
-            "where td.week = ?1 group by s.id order by sum(td.views_day) LIMIT 3", nativeQuery = true)
+            "where td.week = ?1 group by s.id order by sum(td.views_day) DESC LIMIT 3 ", nativeQuery = true)
     List<Integer> getTop3SongByTotalViewInWeek(int week);
 
     @Query(value = "SELECT td.views_day FROM songs s" +
@@ -23,6 +23,6 @@ public interface TrendingRepository extends JpaRepository<Trending, Long> {
     List<Integer> getTotalSongViewsByDayAndWeek(int week, int songId);
 
     @Query(value = "select s FROM Song as s " +
-            "JOIN Trending as td on td.song.id = s.id where td.week = ?1 group by s.id order by sum(td.viewsDay) ")
+            "JOIN Trending as td on td.song.id = s.id where td.week = ?1 group by s.id order by sum(td.viewsDay) DESC")
     List<Song> getSongChartList(int week);
 }

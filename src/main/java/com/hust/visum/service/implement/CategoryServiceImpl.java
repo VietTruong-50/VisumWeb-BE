@@ -4,6 +4,7 @@ import com.hust.visum.model.Category;
 import com.hust.visum.model.Song;
 import com.hust.visum.repository.CategoryRepository;
 import com.hust.visum.repository.SongRepository;
+import com.hust.visum.repository.SubCategoryRepository;
 import com.hust.visum.request.CategoryDTO;
 import com.hust.visum.response.SongByCategoryResponse;
 import com.hust.visum.service.CategoryService;
@@ -18,6 +19,9 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Autowired
     private CategoryRepository categoryRepository;
+
+    @Autowired
+    private SubCategoryRepository subCategoryRepository;
 
     @Autowired
     private SongRepository songRepository;

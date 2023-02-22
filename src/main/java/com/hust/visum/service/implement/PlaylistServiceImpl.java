@@ -19,6 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -59,7 +60,10 @@ public class PlaylistServiceImpl implements PlaylistService {
     }
 
     @Override
+    @Transactional
     public void deletePlaylist(Long playlistId) {
+        playlistRepository.deleteAllSongInPlaylist(playlistId);
+
         playlistRepository.deleteById(playlistId);
     }
 
