@@ -91,4 +91,9 @@ public class SongController {
                                                    @RequestParam String sortBy){
         return ApiResponse.successWithResult(songServiceImpl.getSongChart(page, size, sortBy));
     }
+
+    @GetMapping(value = "recently", produces = "application/json")
+    public ApiResponse<List<Song>> getRecentlySongs(){
+        return ApiResponse.successWithResult(songServiceImpl.getRecentlySongs());
+    }
 }

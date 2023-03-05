@@ -40,4 +40,6 @@ public interface SongService {
     Trending updateSongViews(Long songId);
 
     Page<Song> recommendSongFromFavorite(int page, int size);
+
+    List<Song> getRecentlySongs();
 }

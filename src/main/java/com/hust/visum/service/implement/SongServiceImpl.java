@@ -31,6 +31,9 @@ public class SongServiceImpl implements SongService, CommentService {
     private ComposerRepository composerRepository;
 
     @Autowired
+    private RecentLyRepository recentLyRepository;
+
+    @Autowired
     private SubCategoryRepository subCategoryRepository;
 
     @Autowired
@@ -198,11 +201,11 @@ public class SongServiceImpl implements SongService, CommentService {
 
         ChartResponse chartResponse = new ChartResponse();
 
-        chartResponse.setTop1(trendingRepository.getTotalSongViewsByDayAndWeek(weekOfYear-1, listSongIds.size() > 0 ? listSongIds.get(0) : 0));
-        chartResponse.setTop2(trendingRepository.getTotalSongViewsByDayAndWeek(weekOfYear-1, listSongIds.size() > 1 ? listSongIds.get(1) : 0));
-        chartResponse.setTop3(trendingRepository.getTotalSongViewsByDayAndWeek(weekOfYear-1, listSongIds.size() > 2 ? listSongIds.get(2) : 0));
+        chartResponse.setTop1(trendingRepository.getTotalSongViewsByDayAndWeek(weekOfYear - 1, listSongIds.size() > 0 ? listSongIds.get(0) : 0));
+        chartResponse.setTop2(trendingRepository.getTotalSongViewsByDayAndWeek(weekOfYear - 1, listSongIds.size() > 1 ? listSongIds.get(1) : 0));
+        chartResponse.setTop3(trendingRepository.getTotalSongViewsByDayAndWeek(weekOfYear - 1, listSongIds.size() > 2 ? listSongIds.get(2) : 0));
 
-        chartResponse.setSongs(trendingRepository.getSongChartList(weekOfYear-1));
+        chartResponse.setSongs(trendingRepository.getSongChartList(weekOfYear - 1));
 
         return chartResponse;
     }
@@ -210,6 +213,10 @@ public class SongServiceImpl implements SongService, CommentService {
 
     @Override
     public Trending updateSongViews(Long songId) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        Optional<User> user = userRepository.findUserByUserName(authentication.getName());
 
         LocalDate localDate = LocalDate.now();
         int weekOfYear = localDate.get(ChronoField.ALIGNED_WEEK_OF_YEAR);
@@ -232,6 +239,12 @@ public class SongServiceImpl implements SongService, CommentService {
         }
 
         trendingRepository.save(trending);
+
+        if (user.isPresent()) {
+            if (!recentLyRepository.existsByUserAndSongId(user.get(), songId)) {
+                recentLyRepository.save(new Recently(user.get(), songId, java.sql.Date.valueOf(localDate)));
+            }
+        }
 
         return trending;
     }
@@ -278,6 +291,26 @@ public class SongServiceImpl implements SongService, CommentService {
         }
 
         return null;
+    }
+
+    @Override
+    public List<Song> getRecentlySongs() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        Optional<User> user = userRepository.findUserByUserName(authentication.getName());
+
+        List<Recently> recentlyList = recentLyRepository.findAllByUser(user.get());
+        recentlyList.sort(Comparator.comparing(Recently::getTime));
+
+        List<Song> songs = new ArrayList<>();
+
+        for (Recently rc : recentlyList) {
+            Song song = songRepository.findById(rc.getSongId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+            songs.add(song);
+        }
+
+        return songs;
     }
 
 
@@ -351,4 +384,6 @@ public class SongServiceImpl implements SongService, CommentService {
 
         return new PageImpl<>(commentDTOs, pageable, commentDTOs.size());
     }
+
+
 }
