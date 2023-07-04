@@ -11,5 +11,7 @@ public class SingerDTO {
 
     private String description;
 
+    private Long followers;
+
     private List<Song> songList;
 }

@@ -16,9 +16,9 @@ public interface UserService {
 
     User getCurrentUser(String userName);
 
-    User changePassword(Long userId, PasswordDTO passwordDTO) ;
+    User changePassword(PasswordDTO passwordDTO) ;
 
-    User updateUser(Long userId, UserDTO userDTO) ;
+    User updateUser(UserDTO userDTO) ;
 
     Page<Song> getFavoriteList(String userName, int page, int size, String sortBy);
 

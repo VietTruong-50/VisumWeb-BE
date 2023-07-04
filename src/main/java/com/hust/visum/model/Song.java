@@ -41,13 +41,9 @@ public class Song {
     private Set<Playlist> playlists;
 
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinTable(name = "trending_songs",
-            joinColumns = @JoinColumn(name = "song_id"),
-            inverseJoinColumns = @JoinColumn(name = "trending_id")
-    )
+    @OneToMany(mappedBy = "song",fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonIgnore
-    private Set<Trending> trending;
+    private List<Trending> trending;
 
     @ManyToOne
     @JoinColumn(name = "singer_id")
@@ -72,6 +68,15 @@ public class Song {
     @OneToMany(mappedBy = "song")
     private List<Favorite> favorites;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "song")
     private List<Comment> comments;
+
+    @JsonIgnore
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinTable(name = "album_songs",
+            joinColumns = @JoinColumn(name = "song_id"),
+            inverseJoinColumns = @JoinColumn(name = "album_id")
+    )
+    private List<Album> albums;
 }

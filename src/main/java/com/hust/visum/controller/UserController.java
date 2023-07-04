@@ -1,12 +1,13 @@
 package com.hust.visum.controller;
 
-import com.hust.visum.model.Favorite;
+import com.hust.visum.model.Comment;
 import com.hust.visum.model.Playlist;
 import com.hust.visum.model.Song;
 import com.hust.visum.model.User;
-import com.hust.visum.model.Comment;
 import com.hust.visum.request.CommentDTO;
+import com.hust.visum.request.PasswordDTO;
 import com.hust.visum.request.PlaylistDTO;
+import com.hust.visum.request.UserDTO;
 import com.hust.visum.response.ApiResponse;
 import com.hust.visum.response.PlaylistResponse;
 import com.hust.visum.service.implement.PlaylistServiceImpl;
@@ -20,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/visum")
@@ -52,6 +52,11 @@ public class UserController {
         return ApiResponse.successWithResult(userDetailsService.removeFavoriteSong(songId));
     }
 
+    @GetMapping(value = "/favorite/songs", produces = "application/json")
+    public ApiResponse<Page<Song>> recommendSongNotInFavorite(@RequestParam int page, @RequestParam int size) {
+        return ApiResponse.successWithResult(songService.recommendSongFromFavorite(page, size));
+    }
+
     @GetMapping(path = "/user", produces = "application/json")
     public ApiResponse<User> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -76,20 +81,33 @@ public class UserController {
     }
 
     @DeleteMapping(value = "/playlist/{id}", produces = "application/json")
-    public ApiResponse<?> deleteSongFromPlaylist(@PathVariable("id") Long playlistId, @RequestBody List<Long> listId) {
+    public ApiResponse<?> deleteSongsFromPlaylist(@PathVariable("id") Long playlistId, @RequestBody List<Long> listId) {
         playlistService.removeSongFromPlaylist(playlistId, listId);
         return ApiResponse.successWithResult(null, "Remove success");
     }
 
+    @DeleteMapping(value = "/playlist/{id}/song/{songId}", produces = "application/json")
+    public ApiResponse<?> deleteSongFromPlaylist(@PathVariable("id") Long playlistId, @PathVariable("songId") Long songId) {
+        playlistService.removeSongFromPlaylist(playlistId, songId);
+        return ApiResponse.successWithResult(null, "Remove success");
+    }
+
     @GetMapping(value = "/playlist/{id}", produces = "application/json")
-    public ApiResponse<PlaylistResponse> getPlaylistById(@PathVariable("id") Long playlistId) {
-        return ApiResponse.successWithResult(playlistService.getPlaylistSong(playlistId));
+    public ApiResponse<PlaylistResponse> getPlaylistById(@PathVariable("id") Long playlistId, @RequestParam String orderBy, @RequestParam String sortType) {
+        return ApiResponse.successWithResult(playlistService.getPlaylistSong(playlistId, orderBy, sortType));
     }
 
     @GetMapping(value = "/playlists", produces = "application/json")
     public ApiResponse<List<PlaylistResponse>> getAllPlaylistByUser() {
         return ApiResponse.successWithResult(playlistService.findAllByUser());
     }
+
+    @GetMapping(value = "/playlists/{playlistId}/songs", produces = "application/json")
+    public ApiResponse<Page<Song>> findSongsNotInPlaylist(@PathVariable("playlistId") Long playlistId,
+                                                          @RequestParam int page, @RequestParam int size) {
+        return ApiResponse.successWithResult(playlistService.recommendSongNotInPlaylist(playlistId, page, size));
+    }
+
 
     @DeleteMapping(value = "/playlists/{playlistId}", produces = "application/json")
     public ApiResponse<Playlist> deletePlaylist(@PathVariable("playlistId") Long playlistId) {
@@ -104,7 +122,6 @@ public class UserController {
         Page<PlaylistResponse> playlistResponses = playlistService.findPlaylistsByTitle(title, page, size);
         return ApiResponse.successWithResult(playlistResponses);
     }
-
 
     @GetMapping(value = "/comments/{songId}", produces = "application/json")
     public ApiResponse<Page<CommentDTO>> getAllComments(@PathVariable("songId") Long songId,
@@ -123,5 +140,15 @@ public class UserController {
     @DeleteMapping(value = "/comment/{id}", produces = "application/json")
     public ApiResponse<Comment> deleteComment(@PathVariable Long id) {
         return ApiResponse.successWithResult(this.songService.deleteComment(id), "Delete Comment Successfully");
+    }
+
+    @PutMapping(value = "/profile", produces = "application/json")
+    public ApiResponse<User> updateProfile(@RequestBody() UserDTO userDTO){
+        return ApiResponse.successWithResult(userDetailsService.updateUser(userDTO));
+    }
+
+    @PutMapping(value = "/profile/password", produces = "application/json")
+    public ApiResponse<User> changePassword(@RequestBody() PasswordDTO passwordDTO){
+        return ApiResponse.successWithResult(userDetailsService.changePassword(passwordDTO));
     }
 }

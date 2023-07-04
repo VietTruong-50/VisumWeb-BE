@@ -4,16 +4,22 @@ import com.hust.visum.model.*;
 import com.hust.visum.repository.*;
 import com.hust.visum.request.CommentDTO;
 import com.hust.visum.request.SongDTO;
+import com.hust.visum.response.ChartResponse;
 import com.hust.visum.service.CommentService;
 import com.hust.visum.service.SongService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoField;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class SongServiceImpl implements SongService, CommentService {
@@ -25,6 +31,9 @@ public class SongServiceImpl implements SongService, CommentService {
     private ComposerRepository composerRepository;
 
     @Autowired
+    private RecentLyRepository recentLyRepository;
+
+    @Autowired
     private SubCategoryRepository subCategoryRepository;
 
     @Autowired
@@ -32,6 +41,9 @@ public class SongServiceImpl implements SongService, CommentService {
 
     @Autowired
     private CommentRepository commentRepository;
+
+    @Autowired
+    private TrendingRepository trendingRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -179,11 +191,128 @@ public class SongServiceImpl implements SongService, CommentService {
     }
 
     @Override
-    public Page<Song> findMostPopularSong(int page, int size, String sortBy) {
+    public ChartResponse getSongChart(int page, int size, String sortBy) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
 
-        return songRepository.findSongsByMostViews(pageable);
+        LocalDate localDate = LocalDate.now();
+        int weekOfYear = localDate.get(ChronoField.ALIGNED_WEEK_OF_YEAR);
+
+        List<Integer> listSongIds = trendingRepository.getTop3SongByTotalViewInWeek(weekOfYear - 1);
+
+        ChartResponse chartResponse = new ChartResponse();
+
+        chartResponse.setTop1(trendingRepository.getTotalSongViewsByDayAndWeek(weekOfYear - 1, listSongIds.size() > 0 ? listSongIds.get(0) : 0));
+        chartResponse.setTop2(trendingRepository.getTotalSongViewsByDayAndWeek(weekOfYear - 1, listSongIds.size() > 1 ? listSongIds.get(1) : 0));
+        chartResponse.setTop3(trendingRepository.getTotalSongViewsByDayAndWeek(weekOfYear - 1, listSongIds.size() > 2 ? listSongIds.get(2) : 0));
+
+        chartResponse.setSongs(trendingRepository.getSongChartList(weekOfYear - 1));
+
+        return chartResponse;
     }
+
+
+    @Override
+    public Trending updateSongViews(Long songId) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        Optional<User> user = userRepository.findUserByUserName(authentication.getName());
+
+        LocalDate localDate = LocalDate.now();
+        int weekOfYear = localDate.get(ChronoField.ALIGNED_WEEK_OF_YEAR);
+        int dayOfYear = localDate.get(ChronoField.DAY_OF_YEAR);
+//        int monthOfYear = localDate.get(ChronoField.MONTH_OF_YEAR);
+
+        Song song = songRepository.findById(songId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Song not found"));
+
+        Trending trending = trendingRepository.findByDayAndSong(dayOfYear, song);
+
+        if (trending == null) {
+            trending = new Trending();
+            trending.setViewsDay(1);
+            trending.setWeek(weekOfYear);
+            trending.setDay(dayOfYear);
+            trending.setSong(song);
+        } else if (trending.getDay() == dayOfYear) {
+            trending.setViewsDay(trending.getViewsDay() + 1);
+        }
+
+        trendingRepository.save(trending);
+
+        if (user.isPresent()) {
+            if (!recentLyRepository.existsByUserAndSongId(user.get(), songId)) {
+                recentLyRepository.save(new Recently(user.get(), songId, java.sql.Date.valueOf(localDate)));
+            }
+        }
+
+        return trending;
+    }
+
+    @Override
+    public Page<Song> recommendSongFromFavorite(int page, int size) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        Optional<User> user = userRepository.findUserByUserName(authentication.getName());
+
+        List<Song> finalSongs = new ArrayList<>();
+
+        if (user.isPresent()) {
+            Map<SubCategory, Long> subCategoryMap = new HashMap<>();
+
+            List<Song> songs = songRepository.findFavoriteListByUser(user.get().getUserName());
+
+            if (!songs.isEmpty()) {
+                songs.forEach(item -> {
+                    var subcategory = item.getSubCategory();
+
+                    subCategoryMap.put(subcategory, subCategoryMap.containsKey(subcategory) ? subCategoryMap.get(subcategory) + 1 : 1L);
+                });
+
+                Map<SubCategory, Long> finalSubCategoryMap = subCategoryMap.entrySet()
+                        .stream()
+                        .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                        .limit(3)
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+
+                finalSubCategoryMap.forEach((key, value) -> finalSongs.addAll(songRepository.findSongSameSubCategoryNotInFavorite(user.get().getId(), key.getId())));
+
+            }
+
+            Pageable pageable = PageRequest.of(page, size);
+
+            if (!finalSongs.isEmpty()) {
+                Collections.shuffle(finalSongs);
+                return new PageImpl<>(finalSongs, pageable, finalSongs.size());
+            } else {
+
+                return new PageImpl<>(songRepository.findSongNotInFavorite(user.get().getId()), pageable, songRepository.findSongNotInFavorite(user.get().getId()).size());
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public List<Song> getRecentlySongs() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        Optional<User> user = userRepository.findUserByUserName(authentication.getName());
+
+        List<Recently> recentlyList = recentLyRepository.findAllByUser(user.get());
+        recentlyList.sort(Comparator.comparing(Recently::getTime));
+
+        List<Song> songs = new ArrayList<>();
+
+        for (Recently rc : recentlyList) {
+            Song song = songRepository.findById(rc.getSongId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+            songs.add(song);
+        }
+
+        return songs;
+    }
+
 
     @Override
     public Comment createComment(CommentDTO commentDTO) {
@@ -255,4 +384,6 @@ public class SongServiceImpl implements SongService, CommentService {
 
         return new PageImpl<>(commentDTOs, pageable, commentDTOs.size());
     }
+
+
 }

@@ -11,4 +11,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
     void deleteBySongAndUser(Song song, User user);
+
+    boolean existsBySong(Song song);
 }

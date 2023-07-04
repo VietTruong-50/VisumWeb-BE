@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface SubCategoryRepository  extends JpaRepository<SubCategory,Long> {
+public interface SubCategoryRepository extends JpaRepository<SubCategory,Long> {
     Optional<SubCategory> findSubCategoriesBySubCategoryName(String cateName);
 }

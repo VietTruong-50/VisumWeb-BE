@@ -3,6 +3,7 @@ package com.hust.visum.model;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -14,12 +15,12 @@ public class Trending {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private int views;
-
     private int week;
 
-    private int month;
+    private int day;
 
-    @ManyToMany(mappedBy = "trending")
-    private Set<Song> songs;
+    private int viewsDay;
+    @ManyToOne()
+    @JoinColumn(name = "song_id")
+    private Song song;
 }

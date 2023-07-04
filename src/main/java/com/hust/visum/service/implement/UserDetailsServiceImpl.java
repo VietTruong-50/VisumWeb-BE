@@ -147,12 +147,15 @@ public class UserDetailsServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public User changePassword(Long userId, PasswordDTO passwordDTO) {
-        Optional<User> user = userRepository.findById(userId);
+    public User changePassword(PasswordDTO passwordDTO) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        Optional<User> currentUser = userRepository.findUserByUserName(authentication.getName());
+
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
-        if (user.isPresent()) {
-            User updateUser = user.get();
+        if (currentUser.isPresent()) {
+            User updateUser = currentUser.get();
             if (encoder.matches(passwordDTO.getCurrentPassword(), updateUser.getPassword())) {
                 updateUser.setPassword(new BCryptPasswordEncoder().encode(passwordDTO.getNewPassword()));
                 return userRepository.save(updateUser);
@@ -162,11 +165,14 @@ public class UserDetailsServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public User updateUser(Long userId, UserDTO userDTO) {
-        Optional<User> user = userRepository.findById(userId);
+    public User updateUser(UserDTO userDTO) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        Optional<User> currentUser = userRepository.findUserByUserName(authentication.getName());
+
         User updateUser;
-        if (user.isPresent()) {
-            updateUser = user.get();
+        if (currentUser.isPresent()) {
+            updateUser = currentUser.get();
 
             updateUser.setLastName(userDTO.getLastName() != null ? userDTO.getLastName() : updateUser.getLastName());
             updateUser.setFirstName(userDTO.getFirstName() != null ? userDTO.getFirstName() : updateUser.getFirstName());
@@ -184,7 +190,9 @@ public class UserDetailsServiceImpl implements UserService, UserDetailsService {
     public Page<Song> getFavoriteList(String userName, int page, int size, String sortBy) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
 
-        return songRepository.findFavoriteListByUser(pageable, userName);
+        List<Song> songs = songRepository.findFavoriteListByUser(userName);
+
+        return new PageImpl<>(songs, pageable, songs.size());
     }
 
 
@@ -213,7 +221,7 @@ public class UserDetailsServiceImpl implements UserService, UserDetailsService {
 
         Song song = songRepository.findById(songId).orElse(null);
 
-        if (!songRepository.existsById(songId)) {
+        if (!favoriteRepository.existsBySong(song)) {
             if (song != null && user != null) {
                 Favorite favorite = new Favorite();
 

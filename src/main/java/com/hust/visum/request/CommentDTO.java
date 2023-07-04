@@ -13,7 +13,6 @@ import javax.validation.constraints.NotNull;
 public class CommentDTO {
     private Long id;
 
-    @NotNull
     private Long userId;
 
     private String username;

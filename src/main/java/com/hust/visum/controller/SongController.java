@@ -1,8 +1,10 @@
 package com.hust.visum.controller;
 
 import com.hust.visum.model.Song;
+import com.hust.visum.model.Trending;
 import com.hust.visum.request.SongDTO;
 import com.hust.visum.response.ApiResponse;
+import com.hust.visum.response.ChartResponse;
 import com.hust.visum.service.implement.SongServiceImpl;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,5 +80,20 @@ public class SongController {
         return ApiResponse.successWithResult(null, "Delete success");
     }
 
+    @PostMapping(value = "song/{songId}/view", produces = "application/json")
+    public ApiResponse<Trending> increaseSongView(@PathVariable("songId") Long songId){
+        return ApiResponse.successWithResult(songServiceImpl.updateSongViews(songId));
+    }
 
+    @GetMapping(value = "song/chart", produces = "application/json")
+    public ApiResponse<ChartResponse> getSongChart(@RequestParam int page,
+                                                   @RequestParam int size,
+                                                   @RequestParam String sortBy){
+        return ApiResponse.successWithResult(songServiceImpl.getSongChart(page, size, sortBy));
+    }
+
+    @GetMapping(value = "recently", produces = "application/json")
+    public ApiResponse<List<Song>> getRecentlySongs(){
+        return ApiResponse.successWithResult(songServiceImpl.getRecentlySongs());
+    }
 }
